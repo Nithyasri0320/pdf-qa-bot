@@ -1,641 +1,502 @@
 import { useState, useRef, useEffect } from "react";
 
-const COLORS = {
-  bg: "#0F0F13",
-  surface: "#16161D",
-  card: "#1C1C26",
-  border: "#2A2A38",
-  accent: "#7C6FFF",
-  accentGlow: "#7C6FFF33",
-  accentSoft: "#A99FFF",
-  text: "#E8E8F0",
-  textMuted: "#7A7A9A",
-  textDim: "#4A4A6A",
-  userBubble: "#1E1B3A",
-  aiBubble: "#181824",
-  success: "#4FFFB0",
-  successDim: "#4FFFB022",
-};
+const SEARCH_ICON = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+  </svg>
+);
 
-const styles = {
-  root: {
-    minHeight: "100vh",
-    background: COLORS.bg,
-    color: COLORS.text,
-    fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    padding: "0",
-  },
-  header: {
-    width: "100%",
-    background: `${COLORS.surface}CC`,
-    backdropFilter: "blur(12px)",
-    borderBottom: `1px solid ${COLORS.border}`,
-    padding: "16px 28px",
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    position: "sticky",
-    top: 0,
-    zIndex: 50,
-    boxSizing: "border-box",
-  },
-  logo: {
-    width: 36,
-    height: 36,
-    background: `linear-gradient(135deg, ${COLORS.accent}, #B06FFF)`,
-    borderRadius: "10px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "18px",
-    flexShrink: 0,
-  },
-  headerTitle: {
-    fontSize: "18px",
-    fontWeight: 700,
-    letterSpacing: "-0.3px",
-    color: COLORS.text,
-  },
-  headerSub: {
-    fontSize: "12px",
-    color: COLORS.textMuted,
-    marginTop: "1px",
-  },
-  pdfBadge: {
-    marginLeft: "auto",
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    background: COLORS.card,
-    border: `1px solid ${COLORS.border}`,
-    borderRadius: "8px",
-    padding: "6px 12px",
-    fontSize: "13px",
-    color: COLORS.textMuted,
-    maxWidth: "220px",
-    overflow: "hidden",
-  },
-  pdfBadgeName: {
-    color: COLORS.accentSoft,
-    fontWeight: 500,
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    maxWidth: "140px",
-  },
-  mainWrapper: {
-    width: "100%",
-    maxWidth: "760px",
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    padding: "0 16px",
-    boxSizing: "border-box",
-  },
-  uploadZone: {
-    margin: "48px auto",
-    width: "100%",
-    maxWidth: "520px",
-    background: COLORS.card,
-    border: `2px dashed ${COLORS.border}`,
-    borderRadius: "20px",
-    padding: "52px 32px",
-    textAlign: "center",
-    cursor: "pointer",
-    transition: "all 0.2s ease",
-    boxSizing: "border-box",
-  },
-  uploadZoneActive: {
-    border: `2px dashed ${COLORS.accent}`,
-    background: COLORS.accentGlow,
-  },
-  uploadIcon: {
-    fontSize: "48px",
-    marginBottom: "16px",
-    display: "block",
-    filter: "grayscale(0.3)",
-  },
-  uploadTitle: {
-    fontSize: "20px",
-    fontWeight: 700,
-    marginBottom: "8px",
-    color: COLORS.text,
-  },
-  uploadSub: {
-    fontSize: "14px",
-    color: COLORS.textMuted,
-    marginBottom: "24px",
-    lineHeight: "1.5",
-  },
-  uploadBtn: {
-    display: "inline-block",
-    background: `linear-gradient(135deg, ${COLORS.accent}, #9B6FFF)`,
-    color: "#fff",
-    fontWeight: 600,
-    fontSize: "14px",
-    padding: "10px 24px",
-    borderRadius: "10px",
-    cursor: "pointer",
-    border: "none",
-    letterSpacing: "0.2px",
-  },
-  uploadSmall: {
-    marginTop: "14px",
-    fontSize: "12px",
-    color: COLORS.textDim,
-  },
-  chatArea: {
-    flex: 1,
-    overflowY: "auto",
-    padding: "24px 0",
-    display: "flex",
-    flexDirection: "column",
-    gap: "16px",
-  },
-  emptyState: {
-    marginTop: "40px",
-    textAlign: "center",
-  },
-  emptyIcon: {
-    fontSize: "40px",
-    marginBottom: "12px",
-    display: "block",
-  },
-  emptyTitle: {
-    fontSize: "18px",
-    fontWeight: 600,
-    color: COLORS.text,
-    marginBottom: "6px",
-  },
-  emptySub: {
-    fontSize: "13px",
-    color: COLORS.textMuted,
-    marginBottom: "28px",
-    lineHeight: "1.6",
-  },
-  suggestionGrid: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "10px",
-    justifyContent: "center",
-  },
-  suggestionChip: {
-    background: COLORS.card,
-    border: `1px solid ${COLORS.border}`,
-    borderRadius: "10px",
-    padding: "8px 16px",
-    fontSize: "13px",
-    color: COLORS.textMuted,
-    cursor: "pointer",
-    transition: "all 0.15s ease",
-  },
-  msgRow: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "4px",
-  },
-  msgLabel: {
-    fontSize: "11px",
-    fontWeight: 600,
-    letterSpacing: "0.8px",
-    textTransform: "uppercase",
-    color: COLORS.textDim,
-    marginLeft: "4px",
-  },
-  userMsg: {
-    alignSelf: "flex-end",
-    background: COLORS.userBubble,
-    border: `1px solid ${COLORS.accent}44`,
-    borderRadius: "14px 14px 4px 14px",
-    padding: "12px 16px",
-    fontSize: "14px",
-    lineHeight: "1.6",
-    maxWidth: "80%",
-    color: COLORS.text,
-  },
-  aiMsg: {
-    alignSelf: "flex-start",
-    background: COLORS.aiBubble,
-    border: `1px solid ${COLORS.border}`,
-    borderRadius: "14px 14px 14px 4px",
-    padding: "14px 18px",
-    fontSize: "14px",
-    lineHeight: "1.7",
-    maxWidth: "90%",
-    color: COLORS.text,
-    whiteSpace: "pre-wrap",
-  },
-  loadingDots: {
-    display: "flex",
-    gap: "5px",
-    padding: "6px 4px",
-  },
-  dot: {
-    width: "7px",
-    height: "7px",
-    background: COLORS.accent,
-    borderRadius: "50%",
-    opacity: 0.6,
-  },
-  inputBar: {
-    width: "100%",
-    maxWidth: "760px",
-    padding: "16px",
-    boxSizing: "border-box",
-    background: COLORS.bg,
-    borderTop: `1px solid ${COLORS.border}`,
-    position: "sticky",
-    bottom: 0,
-  },
-  inputRow: {
-    display: "flex",
-    gap: "10px",
-    background: COLORS.card,
-    border: `1px solid ${COLORS.border}`,
-    borderRadius: "14px",
-    padding: "8px 12px",
-    alignItems: "flex-end",
-    transition: "border-color 0.2s",
-  },
-  textarea: {
-    flex: 1,
-    background: "transparent",
-    border: "none",
-    outline: "none",
-    resize: "none",
-    fontSize: "14px",
-    color: COLORS.text,
-    lineHeight: "1.5",
-    padding: "6px 4px",
-    fontFamily: "inherit",
-    minHeight: "24px",
-    maxHeight: "120px",
-    overflowY: "auto",
-  },
-  sendBtn: {
-    background: `linear-gradient(135deg, ${COLORS.accent}, #9B6FFF)`,
-    border: "none",
-    borderRadius: "10px",
-    width: "36px",
-    height: "36px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-    flexShrink: 0,
-    transition: "opacity 0.15s",
-    fontSize: "16px",
-  },
-  sendBtnDisabled: {
-    opacity: 0.4,
-    cursor: "not-allowed",
-  },
-  processingBanner: {
-    background: COLORS.successDim,
-    border: `1px solid ${COLORS.success}44`,
-    borderRadius: "10px",
-    padding: "10px 16px",
-    fontSize: "13px",
-    color: COLORS.success,
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    marginTop: "16px",
-  },
-  clearBtn: {
-    marginLeft: "auto",
-    background: "transparent",
-    border: `1px solid ${COLORS.border}`,
-    borderRadius: "7px",
-    padding: "4px 10px",
-    fontSize: "12px",
-    color: COLORS.textMuted,
-    cursor: "pointer",
-    transition: "all 0.15s",
-  },
-};
+const GLOBE_ICON = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+  </svg>
+);
 
-function LoadingDots() {
-  const [frame, setFrame] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setFrame((f) => (f + 1) % 3), 400);
-    return () => clearInterval(t);
-  }, []);
+const SEND_ICON = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/>
+  </svg>
+);
+
+const LINK_ICON = (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </svg>
+);
+
+const CLEAR_ICON = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+  </svg>
+);
+
+const SUGGESTIONS = [
+  "What's happening in AI today?",
+  "Latest stock market news",
+  "Top tech launches this week",
+  "Recent cricket match results",
+  "Trending topics on the internet",
+];
+
+function TypingDots() {
   return (
-    <div style={styles.loadingDots}>
-      {[0, 1, 2].map((i) => (
-        <div
-          key={i}
-          style={{
-            ...styles.dot,
-            opacity: frame === i ? 1 : 0.25,
-            transform: frame === i ? "scale(1.3)" : "scale(1)",
-            transition: "all 0.2s",
-          }}
-        />
+    <span style={{ display: "inline-flex", gap: "4px", alignItems: "center", padding: "2px 0" }}>
+      {[0, 1, 2].map(i => (
+        <span key={i} style={{
+          width: 7, height: 7, borderRadius: "50%",
+          background: "#6366f1",
+          display: "inline-block",
+          animation: `typingBounce 1.2s ease-in-out ${i * 0.2}s infinite`
+        }} />
       ))}
+    </span>
+  );
+}
+
+function SourceBadge({ url }) {
+  let domain = "";
+  try { domain = new URL(url).hostname.replace("www.", ""); } catch { domain = url; }
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer" style={{
+      display: "inline-flex", alignItems: "center", gap: "4px",
+      background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.25)",
+      borderRadius: 20, padding: "2px 10px", fontSize: 11,
+      color: "#a5b4fc", textDecoration: "none", transition: "all 0.2s",
+      cursor: "pointer", whiteSpace: "nowrap",
+    }}
+    onMouseOver={e => { e.currentTarget.style.background = "rgba(99,102,241,0.22)"; e.currentTarget.style.color = "#c7d2fe"; }}
+    onMouseOut={e => { e.currentTarget.style.background = "rgba(99,102,241,0.12)"; e.currentTarget.style.color = "#a5b4fc"; }}
+    >
+      {LINK_ICON} {domain}
+    </a>
+  );
+}
+
+function SearchingIndicator({ query }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 8,
+      background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)",
+      borderRadius: 10, padding: "6px 14px", fontSize: 12, color: "#a5b4fc",
+      animation: "fadeIn 0.3s ease",
+    }}>
+      <span style={{ animation: "spin 1s linear infinite", display: "inline-block" }}>{GLOBE_ICON}</span>
+      Searching web{query ? `: "${query}"` : "…"}
     </div>
   );
 }
 
-const SUGGESTIONS = [
-  "📋 Summarize this document",
-  "🔑 What are the key points?",
-  "❓ What is this document about?",
-  "📊 List the main topics covered",
-];
-
-export default function PDFQABot() {
-  const [pdfFile, setPdfFile] = useState(null);
-  const [pdfBase64, setPdfBase64] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [dragging, setDragging] = useState(false);
-  const [processing, setProcessing] = useState(false);
-  const chatRef = useRef(null);
-  const fileInputRef = useRef(null);
-  const textareaRef = useRef(null);
-
-  useEffect(() => {
-    if (chatRef.current) {
-      chatRef.current.scrollTop = chatRef.current.scrollHeight;
-    }
-  }, [messages, loading]);
-
-  const handleFile = (file) => {
-    if (!file || file.type !== "application/pdf") {
-      alert("Please upload a PDF file.");
-      return;
-    }
-    setProcessing(true);
-    setPdfFile(file);
-    setMessages([]);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64 = e.target.result.split(",")[1];
-      setPdfBase64(base64);
-      setTimeout(() => setProcessing(false), 800);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setDragging(false);
-    const file = e.dataTransfer.files[0];
-    handleFile(file);
-  };
-
-  const askQuestion = async (question) => {
-    if (!question.trim() || !pdfBase64 || loading) return;
-    const userMsg = question.trim();
-    setMessages((prev) => [...prev, { role: "user", text: userMsg }]);
-    setInput("");
-    setLoading(true);
-
-    try {
-      const history = messages.map((m) =>
-        m.role === "user"
-          ? { role: "user", content: m.text }
-          : { role: "assistant", content: m.text }
-      );
-
-      const pdfContent = {
-        type: "document",
-        source: {
-          type: "base64",
-          media_type: "application/pdf",
-          data: pdfBase64,
-        },
-      };
-
-      const allMessages = [
-        ...history,
-        {
-          role: "user",
-          content: [
-            pdfContent,
-            { type: "text", text: userMsg },
-          ],
-        },
-      ];
-
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-6",
-          max_tokens: 1000,
-          system:
-            "You are a helpful PDF assistant. Answer questions clearly and concisely based on the document provided. If something isn't in the document, say so. Use bullet points or numbered lists when helpful. Be direct and informative.",
-          messages: allMessages,
-        }),
-      });
-
-      const data = await res.json();
-      const aiText =
-        data?.content?.map((b) => b.text || "").join("") ||
-        "Sorry, I couldn't get a response. Please try again.";
-
-      setMessages((prev) => [...prev, { role: "ai", text: aiText }]);
-    } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "ai", text: "⚠️ Something went wrong. Please try again." },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      askQuestion(input);
-    }
-  };
-
-  const handleTextareaChange = (e) => {
-    setInput(e.target.value);
-    const ta = textareaRef.current;
-    if (ta) {
-      ta.style.height = "auto";
-      ta.style.height = Math.min(ta.scrollHeight, 120) + "px";
-    }
-  };
-
-  if (!pdfFile) {
-    return (
-      <div style={styles.root}>
-        <div style={styles.header}>
-          <div style={styles.logo}>📄</div>
-          <div>
-            <div style={styles.headerTitle}>PDF Q&A Bot</div>
-            <div style={styles.headerSub}>Ask anything about your document</div>
-          </div>
-        </div>
-        <div style={styles.mainWrapper}>
-          <div
-            style={{
-              ...styles.uploadZone,
-              ...(dragging ? styles.uploadZoneActive : {}),
-              margin: "auto",
-              marginTop: "64px",
-            }}
-            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <span style={styles.uploadIcon}>📑</span>
-            <div style={styles.uploadTitle}>Drop your PDF here</div>
-            <div style={styles.uploadSub}>
-              Upload any PDF — reports, papers, books, manuals — and start asking questions instantly.
-            </div>
-            <button style={styles.uploadBtn}>Choose PDF file</button>
-            <div style={styles.uploadSmall}>PDF files only · No size limit</div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf"
-              style={{ display: "none" }}
-              onChange={(e) => handleFile(e.target.files[0])}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+function Message({ msg }) {
+  const isUser = msg.role === "user";
   return (
-    <div style={{ ...styles.root, height: "100vh" }}>
-      {/* Header */}
-      <div style={styles.header}>
-        <div style={styles.logo}>📄</div>
-        <div>
-          <div style={styles.headerTitle}>PDF Q&A Bot</div>
-          <div style={styles.headerSub}>Ask anything about your document</div>
-        </div>
-        <div style={styles.pdfBadge}>
-          <span>📎</span>
-          <span style={styles.pdfBadgeName}>{pdfFile.name}</span>
-        </div>
+    <div style={{
+      display: "flex", flexDirection: isUser ? "row-reverse" : "row",
+      gap: 12, alignItems: "flex-start", animation: "fadeSlideIn 0.35s ease",
+    }}>
+      {/* Avatar */}
+      <div style={{
+        width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 14, fontWeight: 700,
+        background: isUser
+          ? "linear-gradient(135deg,#6366f1,#8b5cf6)"
+          : "linear-gradient(135deg,#1e1e2e,#2d2d44)",
+        border: isUser ? "none" : "1.5px solid rgba(99,102,241,0.4)",
+        color: isUser ? "#fff" : "#a5b4fc",
+        boxShadow: isUser ? "0 2px 12px rgba(99,102,241,0.35)" : "none",
+      }}>
+        {isUser ? "N" : "✦"}
       </div>
 
-      {/* Chat */}
-      <div style={{ ...styles.mainWrapper, flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-        {processing && (
-          <div style={styles.processingBanner}>
-            <span>✅</span>
-            <span>PDF loaded — ready to answer questions!</span>
-            <button
-              style={styles.clearBtn}
-              onClick={() => { setPdfFile(null); setPdfBase64(null); setMessages([]); }}
-            >
-              Change PDF
-            </button>
+      <div style={{ maxWidth: "80%", display: "flex", flexDirection: "column", gap: 6 }}>
+        {/* Search indicators */}
+        {msg.searchingQueries?.map((q, i) => (
+          <SearchingIndicator key={i} query={q} />
+        ))}
+
+        {/* Bubble */}
+        {(msg.text || msg.typing) && (
+          <div style={{
+            background: isUser
+              ? "linear-gradient(135deg,#6366f1,#7c3aed)"
+              : "rgba(255,255,255,0.04)",
+            border: isUser ? "none" : "1px solid rgba(255,255,255,0.08)",
+            borderRadius: isUser ? "18px 4px 18px 18px" : "4px 18px 18px 18px",
+            padding: "12px 16px",
+            color: isUser ? "#fff" : "#e2e8f0",
+            fontSize: 14,
+            lineHeight: 1.65,
+            boxShadow: isUser
+              ? "0 4px 16px rgba(99,102,241,0.3)"
+              : "0 1px 4px rgba(0,0,0,0.2)",
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+          }}>
+            {msg.typing ? <TypingDots /> : msg.text}
           </div>
         )}
 
-        <div ref={chatRef} style={styles.chatArea}>
-          {messages.length === 0 && !loading && (
-            <div style={styles.emptyState}>
-              <span style={styles.emptyIcon}>💬</span>
-              <div style={styles.emptyTitle}>Start asking questions</div>
-              <div style={styles.emptySub}>
-                Your PDF is ready. Ask anything — I'll find the answers for you.
-              </div>
-              <div style={styles.suggestionGrid}>
-                {SUGGESTIONS.map((s) => (
-                  <button
-                    key={s}
-                    style={styles.suggestionChip}
-                    onClick={() => askQuestion(s.split(" ").slice(1).join(" "))}
-                    onMouseEnter={(e) => {
-                      e.target.style.borderColor = COLORS.accent;
-                      e.target.style.color = COLORS.accentSoft;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.borderColor = COLORS.border;
-                      e.target.style.color = COLORS.textMuted;
-                    }}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+        {/* Sources */}
+        {msg.sources?.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, paddingLeft: 4 }}>
+            <span style={{ fontSize: 11, color: "#64748b", alignSelf: "center" }}>Sources:</span>
+            {msg.sources.map((s, i) => <SourceBadge key={i} url={s} />)}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
-          {messages.map((m, i) => (
-            <div key={i} style={styles.msgRow}>
-              <div
-                style={{
-                  ...styles.msgLabel,
-                  alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-                }}
-              >
-                {m.role === "user" ? "You" : "AI"}
-              </div>
-              <div style={m.role === "user" ? styles.userMsg : styles.aiMsg}>
-                {m.text}
-              </div>
-            </div>
-          ))}
+export default function WebSearchAgent() {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState([]);
+  const bottomRef = useRef(null);
+  const inputRef = useRef(null);
 
-          {loading && (
-            <div style={styles.msgRow}>
-              <div style={styles.msgLabel}>AI</div>
-              <div style={styles.aiMsg}>
-                <LoadingDots />
-              </div>
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  async function sendMessage(text) {
+    const query = text || input.trim();
+    if (!query || loading) return;
+    setInput("");
+
+    const userMsg = { role: "user", text: query };
+    const thinkingMsg = { role: "assistant", typing: true, searchingQueries: [], sources: [] };
+
+    setMessages(prev => [...prev, userMsg, thinkingMsg]);
+    setLoading(true);
+
+    const newHistory = [...history, { role: "user", content: query }];
+
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {  "Content-Type": "application/json",
+  "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
+  "anthropic-version": "2023-06-01",
+  "anthropic-dangerous-direct-browser-calls": "true", },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 1000,
+          system: `You are a real-time web intelligence agent. When asked questions:
+- ALWAYS use the web_search tool to fetch current, live information
+- Provide accurate, up-to-date answers based on what you find
+- Be concise but comprehensive — use bullet points for lists
+- If asked about news, events, scores, prices, or any time-sensitive data, always search first
+- Today's date is ${new Date().toDateString()}
+- Keep answers clear and well-structured`,
+          messages: newHistory,
+          tools: [{ type: "web_search_20250305", name: "web_search" }],
+        }),
+      });
+
+      const data = await response.json();
+
+      // Extract search queries and answer
+      let answerText = "";
+      const searchQueries = [];
+      const sources = [];
+
+      // First pass: find tool use (searches)
+      for (const block of data.content || []) {
+        if (block.type === "tool_use" && block.name === "web_search") {
+          searchQueries.push(block.input?.query || "");
+        }
+      }
+
+      // Show searching state
+      if (searchQueries.length > 0) {
+        setMessages(prev => {
+          const updated = [...prev];
+          updated[updated.length - 1] = { ...updated[updated.length - 1], searchingQueries: searchQueries };
+          return updated;
+        });
+        await new Promise(r => setTimeout(r, 600));
+      }
+
+      // If there's tool use, we need to continue the conversation
+      if (data.stop_reason === "tool_use") {
+        const toolResults = [];
+        for (const block of data.content) {
+          if (block.type === "tool_use") {
+            toolResults.push({
+              type: "tool_result",
+              tool_use_id: block.id,
+              content: "Search completed. Please provide your answer based on web search results.",
+            });
+          }
+        }
+
+        // Second API call with tool results
+        const continueResponse = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {  "Content-Type": "application/json",
+  "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
+  "anthropic-version": "2023-06-01",
+  "anthropic-dangerous-direct-browser-calls": "true", },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-6",
+            max_tokens: 1000,
+            system: `You are a real-time web intelligence agent. You have just performed web searches. 
+Provide a clear, well-structured answer based on the latest web data.
+Today's date is ${new Date().toDateString()}.
+Use bullet points for lists, be concise but thorough.`,
+            messages: [
+              ...newHistory,
+              { role: "assistant", content: data.content },
+              { role: "user", content: toolResults },
+            ],
+            tools: [{ type: "web_search_20250305", name: "web_search" }],
+          }),
+        });
+
+        const continueData = await continueResponse.json();
+
+        for (const block of continueData.content || []) {
+          if (block.type === "text") answerText += block.text;
+        }
+
+        // Extract sources from tool use inputs
+        for (const block of data.content || []) {
+          if (block.type === "tool_use" && block.name === "web_search") {
+            const q = encodeURIComponent(block.input?.query || "");
+            sources.push(`https://www.google.com/search?q=${q}`);
+          }
+        }
+
+        setHistory([...newHistory, { role: "assistant", content: answerText }]);
+      } else {
+        // Direct answer without tool use
+        for (const block of data.content || []) {
+          if (block.type === "text") answerText += block.text;
+        }
+        setHistory([...newHistory, { role: "assistant", content: answerText }]);
+      }
+
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = {
+          role: "assistant",
+          text: answerText || "I couldn't find relevant information. Try rephrasing your question.",
+          sources,
+          searchingQueries: [],
+        };
+        return updated;
+      });
+
+    } catch (err) {
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = {
+          role: "assistant",
+          text: "⚠️ Something went wrong. Please try again.",
+          sources: [],
+          searchingQueries: [],
+        };
+        return updated;
+      });
+    }
+
+    setLoading(false);
+    inputRef.current?.focus();
+  }
+
+  function handleKey(e) {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  }
+
+  function clearChat() {
+    setMessages([]);
+    setHistory([]);
+    setInput("");
+  }
+
+  const isEmpty = messages.length === 0;
+
+  return (
+    <div style={{
+      minHeight: "100vh",
+      background: "linear-gradient(135deg,#0a0a14 0%,#0d0d1a 50%,#0a0f1a 100%)",
+      display: "flex", flexDirection: "column", alignItems: "center",
+      fontFamily: "'Inter','Segoe UI',sans-serif",
+      color: "#e2e8f0",
+    }}>
+      <style>{`
+        @keyframes typingBounce {
+          0%,80%,100%{transform:translateY(0)}
+          40%{transform:translateY(-6px)}
+        }
+        @keyframes spin {
+          from{transform:rotate(0deg)}to{transform:rotate(360deg)}
+        }
+        @keyframes fadeIn {
+          from{opacity:0}to{opacity:1}
+        }
+        @keyframes fadeSlideIn {
+          from{opacity:0;transform:translateY(12px)}
+          to{opacity:1;transform:translateY(0)}
+        }
+        @keyframes pulse {
+          0%,100%{opacity:1}50%{opacity:0.5}
+        }
+        textarea:focus{outline:none}
+        textarea::placeholder{color:#475569}
+        ::-webkit-scrollbar{width:5px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:#2d2d44;border-radius:4px}
+        .chip:hover{background:rgba(99,102,241,0.15)!important;border-color:rgba(99,102,241,0.4)!important;color:#c7d2fe!important}
+      `}</style>
+
+      {/* Header */}
+      <div style={{
+        width: "100%", maxWidth: 760,
+        padding: "20px 20px 0",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 10,
+            background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 18, boxShadow: "0 4px 16px rgba(99,102,241,0.4)",
+          }}>🌐</div>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 15, letterSpacing: "-0.02em" }}>WebAgent</div>
+            <div style={{
+              fontSize: 11, color: "#6366f1", display: "flex", alignItems: "center", gap: 4,
+            }}>
+              <span style={{
+                width: 6, height: 6, background: "#22c55e", borderRadius: "50%",
+                display: "inline-block", animation: "pulse 2s ease-in-out infinite",
+              }} />
+              Live web access
             </div>
-          )}
+          </div>
         </div>
+        {!isEmpty && (
+          <button onClick={clearChat} style={{
+            background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 8, padding: "6px 12px", color: "#64748b",
+            cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
+            fontSize: 12, transition: "all 0.2s",
+          }}
+          onMouseOver={e => { e.currentTarget.style.color = "#e2e8f0"; e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
+          onMouseOut={e => { e.currentTarget.style.color = "#64748b"; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+          >
+            {CLEAR_ICON} Clear
+          </button>
+        )}
       </div>
 
-      {/* Input */}
-      <div style={{ ...styles.inputBar, width: "100%", maxWidth: "760px" }}>
-        <div style={styles.inputRow}>
-          <textarea
-            ref={textareaRef}
-            style={styles.textarea}
-            placeholder="Ask a question about your PDF..."
-            value={input}
-            onChange={handleTextareaChange}
-            onKeyDown={handleKeyDown}
-            rows={1}
-            disabled={loading}
-          />
-          <button
-            style={{
-              ...styles.sendBtn,
-              ...((!input.trim() || loading) ? styles.sendBtnDisabled : {}),
-            }}
-            onClick={() => askQuestion(input)}
-            disabled={!input.trim() || loading}
-          >
-            ↑
-          </button>
-        </div>
-        <div style={{ marginTop: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: "11px", color: COLORS.textDim }}>
-            Enter to send · Shift+Enter for new line
-          </span>
-          {messages.length > 0 && (
+      {/* Main area */}
+      <div style={{
+        flex: 1, width: "100%", maxWidth: 760,
+        padding: "0 20px",
+        display: "flex", flexDirection: "column",
+      }}>
+        {isEmpty ? (
+          /* Welcome screen */
+          <div style={{
+            flex: 1, display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center",
+            paddingTop: 60, paddingBottom: 20,
+            animation: "fadeIn 0.5s ease",
+          }}>
+            <div style={{
+              fontSize: 52, marginBottom: 16,
+              filter: "drop-shadow(0 0 30px rgba(99,102,241,0.5))",
+            }}>🌐</div>
+            <h1 style={{
+              fontSize: 28, fontWeight: 800, margin: "0 0 10px",
+              background: "linear-gradient(135deg,#e2e8f0,#a5b4fc)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              textAlign: "center", letterSpacing: "-0.03em",
+            }}>
+              Real-Time Web Agent
+            </h1>
+            <p style={{ color: "#64748b", fontSize: 14, margin: "0 0 36px", textAlign: "center" }}>
+              Ask anything — I'll search the web live and answer with fresh data.
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", maxWidth: 520 }}>
+              {SUGGESTIONS.map((s, i) => (
+                <button key={i} className="chip" onClick={() => sendMessage(s)} style={{
+                  background: "rgba(99,102,241,0.08)",
+                  border: "1px solid rgba(99,102,241,0.2)",
+                  borderRadius: 20, padding: "7px 14px",
+                  color: "#94a3b8", fontSize: 12,
+                  cursor: "pointer", transition: "all 0.2s",
+                  display: "flex", alignItems: "center", gap: 6,
+                }}>
+                  {SEARCH_ICON} {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          /* Chat messages */
+          <div style={{
+            flex: 1, overflowY: "auto", paddingTop: 24, paddingBottom: 16,
+            display: "flex", flexDirection: "column", gap: 20,
+          }}>
+            {messages.map((msg, i) => <Message key={i} msg={msg} />)}
+            <div ref={bottomRef} />
+          </div>
+        )}
+
+        {/* Input area */}
+        <div style={{ paddingBottom: 24, paddingTop: 12 }}>
+          <div style={{
+            background: "rgba(255,255,255,0.04)",
+            border: `1.5px solid ${loading ? "rgba(99,102,241,0.5)" : "rgba(255,255,255,0.1)"}`,
+            borderRadius: 16, padding: "12px 16px",
+            display: "flex", alignItems: "flex-end", gap: 12,
+            boxShadow: loading ? "0 0 24px rgba(99,102,241,0.15)" : "0 4px 24px rgba(0,0,0,0.3)",
+            transition: "all 0.3s",
+          }}>
+            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ color: "#4a5568", flexShrink: 0 }}>{SEARCH_ICON}</span>
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKey}
+                placeholder="Ask anything — news, scores, prices, events…"
+                rows={1}
+                disabled={loading}
+                style={{
+                  flex: 1, background: "transparent", border: "none",
+                  color: "#e2e8f0", fontSize: 14, resize: "none",
+                  lineHeight: 1.5, maxHeight: 120, overflowY: "auto",
+                  fontFamily: "inherit",
+                }}
+              />
+            </div>
             <button
-              style={styles.clearBtn}
-              onClick={() => { setPdfFile(null); setPdfBase64(null); setMessages([]); }}
-              onMouseEnter={(e) => { e.target.style.color = COLORS.text; }}
-              onMouseLeave={(e) => { e.target.style.color = COLORS.textMuted; }}
+              onClick={() => sendMessage()}
+              disabled={loading || !input.trim()}
+              style={{
+                width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                background: loading || !input.trim()
+                  ? "rgba(99,102,241,0.2)"
+                  : "linear-gradient(135deg,#6366f1,#7c3aed)",
+                border: "none", cursor: loading || !input.trim() ? "not-allowed" : "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: loading || !input.trim() ? "#4a5568" : "#fff",
+                transition: "all 0.2s",
+                boxShadow: !loading && input.trim() ? "0 4px 12px rgba(99,102,241,0.4)" : "none",
+              }}
             >
-              📎 Change PDF
+              {SEND_ICON}
             </button>
-          )}
+          </div>
+          <div style={{ textAlign: "center", fontSize: 11, color: "#334155", marginTop: 8 }}>
+            Press Enter to search · Shift+Enter for new line
+          </div>
         </div>
       </div>
     </div>
